@@ -12,6 +12,13 @@ const NamespaceServiceUrl = "http://10.105.4.96:8080/admin/v2/namespaces/shenjia
 const TopicServiceUrl = "http://10.105.4.96:8080/admin/v2/persistent/shenjiaqi/my-namespace"
 
 func main() {
+	logger.Setup(&logger.Settings{
+		Path:       "logs",
+		Name:       "pulsar-topic-check",
+		Ext:        "log",
+		TimeFormat: "2006-01-02",
+	})
+
 	index := 12
 	var topicsP []string
 	var topicsPP []string
