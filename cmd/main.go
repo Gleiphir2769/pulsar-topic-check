@@ -77,64 +77,71 @@ func main() {
 
 		failedCount := 0
 		lastCount := 0
-		for i := 0; i < 100; i++ {
-			checkedTopicsP, err := http_client.GetTopic(topicServiceUrl, "p")
-			if err != nil {
-				failedCount++
-				logger.Error(fmt.Errorf("check topic failed, count is %d, reason is: %s", failedCount, err))
-				continue
+		// 进行十分钟的压力测试，每十秒测试一轮，每个查询接口测试100次
+		for j := 0; j < 60; j++ {
+			for i := 0; i < 100; i++ {
+				checkedTopicsP, err := http_client.GetTopic(topicServiceUrl, "p")
+				if err != nil {
+					failedCount++
+					logger.Error(fmt.Errorf("check topic failed, count is %d, reason is: %s", failedCount, err))
+					continue
+				}
+				if !http_client.StringSlicesEqual(checkedTopicsP, topicsP) {
+					failedCount++
+					logger.Error(fmt.Errorf("check topic failed, count is %d, checked topics: %s, expect topics: %s", failedCount, checkedTopicsP, topicsP))
+				}
 			}
-			if !http_client.StringSlicesEqual(checkedTopicsP, topicsP) {
-				failedCount++
-				logger.Error(fmt.Errorf("check topic failed, count is %d, checked topics: %s, expect topics: %s", failedCount, checkedTopicsP, topicsP))
-			}
-		}
-		logger.Info("check persistent non-partition topic finished, fail count: ", failedCount-lastCount)
+			logger.Info("check persistent non-partition topic finished, fail count: ", failedCount-lastCount)
 
-		for i := 0; i < 100; i++ {
-			checkedTopicsPP, err := http_client.GetTopic(topicServiceUrl, "pp")
-			if err != nil {
-				failedCount++
-				logger.Error(fmt.Errorf("check topic failed, count is %d, reason is: %s", failedCount, err))
-				continue
+			for i := 0; i < 100; i++ {
+				checkedTopicsPP, err := http_client.GetTopic(topicServiceUrl, "pp")
+				if err != nil {
+					failedCount++
+					logger.Error(fmt.Errorf("check topic failed, count is %d, reason is: %s", failedCount, err))
+					continue
+				}
+				if !http_client.StringSlicesEqual(checkedTopicsPP, topicsPP) {
+					failedCount++
+					logger.Error(fmt.Errorf("check topic failed, count is %d, checked topics: %s, expect topics: %s", failedCount, checkedTopicsPP, topicsPP))
+				}
 			}
-			if !http_client.StringSlicesEqual(checkedTopicsPP, topicsPP) {
-				failedCount++
-				logger.Error(fmt.Errorf("check topic failed, count is %d, checked topics: %s, expect topics: %s", failedCount, checkedTopicsPP, topicsPP))
-			}
-		}
-		logger.Info("check persistent partition topic finished, fail count: ", failedCount-lastCount)
+			logger.Info("check persistent partition topic finished, fail count: ", failedCount-lastCount)
 
-		for i := 0; i < 100; i++ {
-			checkedTopicsN, err := http_client.GetTopic(topicServiceUrl, "n")
-			if err != nil {
-				failedCount++
-				logger.Error(fmt.Errorf("check topic failed, count is %d, reason is: %s", failedCount, err))
-				continue
+			for i := 0; i < 100; i++ {
+				checkedTopicsN, err := http_client.GetTopic(topicServiceUrl, "n")
+				if err != nil {
+					failedCount++
+					logger.Error(fmt.Errorf("check topic failed, count is %d, reason is: %s", failedCount, err))
+					continue
+				}
+				if !http_client.StringSlicesEqual(checkedTopicsN, topicsN) {
+					failedCount++
+					logger.Error(fmt.Errorf("check topic failed, count is %d, checked topics: %s, expect topics: %s", failedCount, checkedTopicsN, topicsN))
+				}
 			}
-			if !http_client.StringSlicesEqual(checkedTopicsN, topicsN) {
-				failedCount++
-				logger.Error(fmt.Errorf("check topic failed, count is %d, checked topics: %s, expect topics: %s", failedCount, checkedTopicsN, topicsN))
-			}
-		}
-		logger.Info("check non-persistent non-partition topic finished, fail count: ", failedCount-lastCount)
+			logger.Info("check non-persistent non-partition topic finished, fail count: ", failedCount-lastCount)
 
-		for i := 0; i < 100; i++ {
-			checkedTopicsNP, err := http_client.GetTopic(topicServiceUrl, "np")
-			if err != nil {
-				failedCount++
-				logger.Error(fmt.Errorf("check topic failed, count is %d, reason is: %s", failedCount, err))
-				continue
+			for i := 0; i < 100; i++ {
+				checkedTopicsNP, err := http_client.GetTopic(topicServiceUrl, "np")
+				if err != nil {
+					failedCount++
+					logger.Error(fmt.Errorf("check topic failed, count is %d, reason is: %s", failedCount, err))
+					continue
+				}
+				if !http_client.StringSlicesEqual(checkedTopicsNP, topicsNP) {
+					failedCount++
+					logger.Error(fmt.Errorf("check topic failed, count is %d, checked topics: %s, expect topics: %s", failedCount, checkedTopicsNP, topicsNP))
+				}
 			}
-			if !http_client.StringSlicesEqual(checkedTopicsNP, topicsNP) {
-				failedCount++
-				logger.Error(fmt.Errorf("check topic failed, count is %d, checked topics: %s, expect topics: %s", failedCount, checkedTopicsNP, topicsNP))
-			}
+			logger.Info("check non-persistent partition topic finished, fail count: ", failedCount-lastCount)
+
+			time.Sleep(time.Second * 10)
 		}
-		logger.Info("check non-persistent partition topic finished, fail count: ", failedCount-lastCount)
 
 		if failedCount == 0 {
 			logger.Info(fmt.Sprintf("%s check succeed", topicServiceUrl))
+		} else {
+			logger.Error(fmt.Sprintf("%s check have failed attemps: %d", topicServiceUrl, failedCount))
 		}
 
 		for _, topicP := range topicsP {
@@ -170,7 +177,6 @@ func main() {
 			logger.Error(err)
 		}
 		index++
-		time.Sleep(time.Second * 10)
 	}
 }
 
